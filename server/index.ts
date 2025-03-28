@@ -36,6 +36,10 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get('/api/your-endpoint', (req, res) => {
+    res.json({ message: 'Hello from the API!' });
+});
+
 (async () => {
   const server = await registerRoutes(app);
 
