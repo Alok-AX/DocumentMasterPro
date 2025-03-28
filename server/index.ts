@@ -1,8 +1,12 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import cors from 'cors';
 
 const app = express();
+
+// Enable CORS
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -36,8 +40,19 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/api/your-endpoint', (req, res) => {
-    res.json({ message: 'Hello from the API!' });
+// Basic health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok' });
+});
+
+app.get('/api/your-endpoint', async (req, res) => {
+    try {
+        // Your logic here
+        res.json({ message: 'Hello from the API!' });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 });
 
 (async () => {
@@ -59,12 +74,8 @@ app.get('/api/your-endpoint', (req, res) => {
   } else {
     serveStatic(app);
   }
-
-  // ALWAYS serve the app on port 3000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const PORT = 3000;
-  server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server is running on http://0.0.0.0:${PORT}`);
-  });
 })();
+
+// Remove app.listen() for Vercel deployment
+// Instead, export the Express app
+export default app;
