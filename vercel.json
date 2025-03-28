@@ -1,17 +1,19 @@
 {
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "framework": "vite",
-  "outputDirectory": "dist",
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
+    "version": 2,
+    "builds": [
+      {
+        "src": "server/index.ts",
+        "use": "@vercel/node"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "server/index.ts"
+      }
+    ],
+    "env": {
+      "NODE_ENV": "production",
+      "SESSION_SECRET": "your_session_secret"
     }
-  ]
-} 
+  }
