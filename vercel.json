@@ -12,9 +12,11 @@
         "dest": "server/index.ts"
       }
     ],
-    "functions": {
-      "api/subdir/*.ts": {
-        "maxDuration": 10 
+    
+        "functions": {
+          "users/**/*.js": {
+            "maxDuration": 30
+          }
+        }
       }
-    }
-  }
+  
