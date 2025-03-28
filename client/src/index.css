@@ -11,3 +11,7 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+.text-muted{
+  color: #000;
+}
