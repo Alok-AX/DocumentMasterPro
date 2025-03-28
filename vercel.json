@@ -1,15 +1,18 @@
 {
     "version": 2,
-    "builds": [
-      {
-        "src": "server/index.ts",
-        "use": "@vercel/node"
+    "buildCommand": "npm run build",
+    "installCommand": "npm install",
+    "framework": null,
+    "functions": {
+      "server/index.ts": {
+        "memory": 1024,
+        "maxDuration": 10
       }
-    ],
+    },
     "routes": [
       {
         "src": "/(.*)",
-        "dest": "server/index.ts"
+        "dest": "/server/index.ts"
       }
     ],
     "env": {
