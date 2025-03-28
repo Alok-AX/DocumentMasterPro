@@ -55,6 +55,9 @@ function initializeRoutes() {
   return routeInitializationPromise;
 }
 
+
+
+
 // Initialize routes immediately
 initializeRoutes();
 
