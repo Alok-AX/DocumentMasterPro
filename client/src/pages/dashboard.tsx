@@ -5,7 +5,7 @@ import StatCard from '@/components/dashboard/StatCard';
 import ActivityItem from '@/components/dashboard/ActivityItem';
 import UploadSection from '@/components/dashboard/UploadSection';
 import { Button } from '@/components/ui/button';
-import { Activity } from '@shared/schema';
+import { Activity, Document } from '@shared/schema';
 import { 
   FileText, 
   Upload, 
@@ -15,7 +15,7 @@ import {
 
 const Dashboard = () => {
   // Fetch dashboard stats
-  const { data: documents } = useQuery({
+  const { data: documents } = useQuery<Document[]>({
     queryKey: ['/api/documents'],
   });
   
@@ -51,6 +51,8 @@ const Dashboard = () => {
       change: { value: '2 new this month', isPositive: true }
     }
   ];
+  
+  const [recentDocuments, setRecentDocuments] = useState<Document[]>([]);
   
   return (
     <Layout>

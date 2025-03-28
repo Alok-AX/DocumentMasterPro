@@ -1,13 +1,17 @@
-import { cn } from '@/lib/utils';
+import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { motion } from 'framer-motion';
-import { Activity } from '@shared/schema';
-import { 
-  Upload,
-  Edit,
-  Search,
-  Trash2
-} from 'lucide-react';
+import { User, Document, Activity } from '@shared/schema';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { FileText, MessageSquare, Upload, UserPlus } from 'lucide-react';
+
+// Activity icon mapping
+const ActivityIcon = {
+  'upload': Upload,
+  'comment': MessageSquare,
+  'share': UserPlus,
+  'edit': FileText
+} as const;
 
 interface ActivityItemProps {
   activity: Activity;
@@ -15,82 +19,42 @@ interface ActivityItemProps {
 }
 
 const ActivityItem = ({ activity, index }: ActivityItemProps) => {
-  const getActivityIcon = () => {
-    switch (activity.type) {
-      case 'upload':
-        return {
-          icon: Upload,
-          bgColor: 'bg-green-100',
-          textColor: 'text-green-600'
-        };
-      case 'edit':
-        return {
-          icon: Edit,
-          bgColor: 'bg-blue-100',
-          textColor: 'text-blue-600'
-        };
-      case 'query':
-        return {
-          icon: Search,
-          bgColor: 'bg-purple-100',
-          textColor: 'text-purple-600'
-        };
-      case 'delete':
-        return {
-          icon: Trash2,
-          bgColor: 'bg-red-100',
-          textColor: 'text-red-600'
-        };
-      default:
-        return {
-          icon: Edit,
-          bgColor: 'bg-gray-100',
-          textColor: 'text-gray-600'
-        };
-    }
-  };
-
-  const getActivityTitle = () => {
-    switch (activity.type) {
-      case 'upload':
-        return 'Document Uploaded';
-      case 'edit':
-        return 'Document Edited';
-      case 'query':
-        return 'Query Performed';
-      case 'delete':
-        return 'Document Deleted';
-      default:
-        return 'Activity';
-    }
-  };
-
-  const { icon: Icon, bgColor, textColor } = getActivityIcon();
-  const title = getActivityTitle();
-  const isNew = index === 0;
-  const timeAgo = formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true });
-
+  const Icon = activity.type && activity.type in ActivityIcon 
+    ? ActivityIcon[activity.type as keyof typeof ActivityIcon] 
+    : FileText;
+  
+  // Format the timestamp safely
+  const formattedTime = activity.createdAt 
+    ? formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true }) 
+    : 'recently';
+  
   return (
-    <motion.div 
-      className="flex items-start pb-4 border-b border-border last:border-0 last:pb-0"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.3 }}
-    >
-      <div className={cn("rounded-full p-2 mt-1", bgColor, textColor)}>
-        <Icon size={14} />
-      </div>
-      <div className="ml-3">
-        <div className="flex items-center">
-          <p className="font-medium text-sm">{title}</p>
-          {isNew && (
-            <span className="ml-2 text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">New</span>
-          )}
+    <div className="flex items-start space-x-4 py-2">
+      <Avatar className="h-8 w-8">
+        <AvatarImage src={activity.user?.avatar || ''} alt={activity.user?.name || 'User'} />
+        <AvatarFallback>{activity.user?.name?.charAt(0) || 'U'}</AvatarFallback>
+      </Avatar>
+      
+      <div className="flex-1 space-y-1">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium">
+            <span className="font-semibold">{activity.user?.name || 'A user'}</span>{' '}
+            {activity.action || 'performed an action'}
+          </p>
+          <span className="text-xs text-muted-foreground">{formattedTime}</span>
         </div>
-        <p className="text-sm text-muted mt-1">{activity.details}</p>
-        <p className="text-xs text-muted mt-1">{timeAgo}</p>
+        
+        {activity.documentName && (
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium">{activity.documentName}</span>
+          </p>
+        )}
       </div>
-    </motion.div>
+      
+      <div className="rounded-full p-2 bg-primary/10">
+        <Icon className="h-4 w-4 text-primary" />
+      </div>
+    </div>
   );
 };
 

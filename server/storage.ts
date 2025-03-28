@@ -1,8 +1,8 @@
 import { 
-  users, type User, type InsertUser,
-  documents, type Document, type InsertDocument,
-  activities, type Activity, type InsertActivity,
-  ingestions, type Ingestion, type InsertIngestion
+  User, type InsertUser,
+  Document, type InsertDocument,
+  Activity, type InsertActivity,
+  Ingestion, type InsertIngestion
 } from "@shared/schema";
 
 export interface IStorage {
@@ -30,7 +30,7 @@ export interface IStorage {
 
   // Ingestion operations
   createIngestion(ingestion: InsertIngestion): Promise<Ingestion>;
-  updateIngestionStatus(id: number, status: string, logs?: string): Promise<Ingestion | undefined>;
+  updateIngestionStatus(id: number, status: "pending" | "processing" | "completed" | "failed", logs?: string): Promise<Ingestion | undefined>;
   listIngestions(): Promise<Ingestion[]>;
   getIngestion(id: number): Promise<Ingestion | undefined>;
 }
@@ -125,7 +125,7 @@ export class MemStorage implements IStorage {
       ...insertDocument,
       id,
       createdAt: now,
-      modifiedAt: now,
+      updatedAt: now,
       starred: false
     };
     this.documents.set(id, document);
@@ -149,7 +149,7 @@ export class MemStorage implements IStorage {
     const updatedDocument = { 
       ...document, 
       ...data, 
-      modifiedAt: now 
+      updatedAt: now 
     };
     this.documents.set(id, updatedDocument);
     return updatedDocument;
@@ -183,7 +183,7 @@ export class MemStorage implements IStorage {
 
   async listActivities(limit?: number): Promise<Activity[]> {
     const activities = Array.from(this.activities.values())
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort((a, b) => (b.createdAt ?? new Date(0)).getTime() - (a.createdAt ?? new Date(0)).getTime());
     
     if (limit) {
       return activities.slice(0, limit);
@@ -194,7 +194,7 @@ export class MemStorage implements IStorage {
   async listUserActivities(userId: number, limit?: number): Promise<Activity[]> {
     const activities = Array.from(this.activities.values())
       .filter(activity => activity.userId === userId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort((a, b) => (b.createdAt ?? new Date(0)).getTime() - (a.createdAt ?? new Date(0)).getTime());
     
     if (limit) {
       return activities.slice(0, limit);
@@ -216,7 +216,11 @@ export class MemStorage implements IStorage {
     return ingestion;
   }
 
-  async updateIngestionStatus(id: number, status: string, logs?: string): Promise<Ingestion | undefined> {
+  async updateIngestionStatus(
+    id: number, 
+    status: "pending" | "processing" | "completed" | "failed", 
+    logs?: string
+  ): Promise<Ingestion | undefined> {
     const ingestion = this.ingestions.get(id);
     if (!ingestion) return undefined;
 
@@ -225,7 +229,7 @@ export class MemStorage implements IStorage {
       completedAt = new Date();
     }
 
-    const updatedIngestion = { 
+    const updatedIngestion: Ingestion = { 
       ...ingestion, 
       status, 
       logs: logs || ingestion.logs,
@@ -237,7 +241,7 @@ export class MemStorage implements IStorage {
 
   async listIngestions(): Promise<Ingestion[]> {
     return Array.from(this.ingestions.values())
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort((a, b) => (b.createdAt ?? new Date(0)).getTime() - (a.createdAt ?? new Date(0)).getTime());
   }
 
   async getIngestion(id: number): Promise<Ingestion | undefined> {

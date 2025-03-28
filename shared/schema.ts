@@ -1,83 +1,70 @@
-import { pgTable, text, serial, integer, timestamp, boolean } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// User model
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  role: text("role").notNull().default("viewer"), // Admin, Editor, Viewer
-  createdAt: timestamp("created_at").defaultNow(),
+// User schema
+export const userSchema = z.object({
+  id: z.number(),
+  username: z.string().min(3).max(50),
+  email: z.string().email(),
+  name: z.string().min(1).max(100),
+  password: z.string().min(6),
+  avatar: z.string().optional(),
+  role: z.enum(["admin", "user"]).default("user"),
+  createdAt: z.date().nullable().optional()
 });
 
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
+// Insert user schema (for registration)
+export const insertUserSchema = userSchema.omit({ id: true, createdAt: true });
+
+// Document schema
+export const documentSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  type: z.string(),
+  size: z.number(),
+  path: z.string(),
+  userId: z.number().optional(),
+  createdAt: z.date().nullable().optional(),
+  updatedAt: z.date().nullable().optional(),
+  starred: z.boolean().default(false)
 });
 
-// Document model
-export const documents = pgTable("documents", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  type: text("type").notNull(), // PDF, DOCX, TXT, XLSX
-  size: integer("size").notNull(), // Size in bytes
-  path: text("path").notNull(),
-  userId: integer("user_id").notNull(), // Owner of the document
-  starred: boolean("starred").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-  modifiedAt: timestamp("modified_at").defaultNow(),
+// Insert document schema
+export const insertDocumentSchema = documentSchema.omit({ id: true, createdAt: true, updatedAt: true });
+
+// Activity schema
+export const activitySchema = z.object({
+  id: z.number(),
+  userId: z.number(),
+  action: z.string(),
+  type: z.string(),
+  documentId: z.number().optional(),
+  documentName: z.string().optional(),
+  createdAt: z.date().nullable().optional(),
+  user: userSchema.nullable().optional()
 });
 
-export const insertDocumentSchema = createInsertSchema(documents).omit({
-  id: true,
-  createdAt: true,
-  modifiedAt: true,
+// Insert activity schema
+export const insertActivitySchema = activitySchema.omit({ id: true, createdAt: true, user: true });
+
+// Ingestion schema
+export const ingestionSchema = z.object({
+  id: z.number(),
+  documentId: z.number(),
+  status: z.enum(["pending", "processing", "completed", "failed"]),
+  logs: z.string().nullable().optional(),
+  createdAt: z.date().nullable().optional(),
+  completedAt: z.date().nullable().optional()
 });
 
-// Activity model
-export const activities = pgTable("activities", {
-  id: serial("id").primaryKey(),
-  type: text("type").notNull(), // upload, edit, delete, query
-  documentId: integer("document_id"),
-  userId: integer("user_id").notNull(),
-  details: text("details"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+// Insert ingestion schema
+export const insertIngestionSchema = ingestionSchema.omit({ id: true, createdAt: true, completedAt: true });
 
-export const insertActivitySchema = createInsertSchema(activities).omit({
-  id: true,
-  createdAt: true,
-});
-
-// Ingestion model
-export const ingestions = pgTable("ingestions", {
-  id: serial("id").primaryKey(),
-  documentId: integer("document_id").notNull(),
-  status: text("status").notNull(), // pending, processing, completed, failed
-  logs: text("logs"),
-  userId: integer("user_id").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  completedAt: timestamp("completed_at"),
-});
-
-export const insertIngestionSchema = createInsertSchema(ingestions).omit({
-  id: true,
-  createdAt: true,
-  completedAt: true,
-});
-
-// Types
-export type User = typeof users.$inferSelect;
+// Export types
+export type User = z.infer<typeof userSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
-
-export type Document = typeof documents.$inferSelect;
+export type Document = z.infer<typeof documentSchema>;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
-
-export type Activity = typeof activities.$inferSelect;
+export type Activity = z.infer<typeof activitySchema>;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
-
-export type Ingestion = typeof ingestions.$inferSelect;
+export type Ingestion = z.infer<typeof ingestionSchema>;
 export type InsertIngestion = z.infer<typeof insertIngestionSchema>;
