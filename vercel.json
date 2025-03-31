@@ -2,14 +2,14 @@
     "version": 2,
     "builds": [
       {
-        "src": "server/index.ts",
+        "src": "api/index.ts",
         "use": "@vercel/node"
       }
     ],
     "routes": [
       {
         "src": "/(.*)",
-        "dest": "server/index.ts"
+        "dest": "api/index.ts"
       }
     ],
     "env": {
@@ -17,7 +17,7 @@
       "SESSION_SECRET": "your_session_secret"
     },
     "functions": {
-      "server/index.ts": {
+      "api/index.ts": {
         "memory": 1024,
         "maxDuration": 60
       }
