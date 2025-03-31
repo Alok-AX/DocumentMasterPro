@@ -25,24 +25,23 @@ DocManager is a full-stack web application for managing documents with a secure 
 ## Project Structure
 
 ```
-├── client/                 # Frontend React application
+├── api/                   # Serverless API functions for Vercel
+│   ├── index.ts          # Main API handler
+│   └── routes/           # API route handlers
+├── client/               # Frontend React application
 │   ├── src/
-│   │   ├── components/     # UI components
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── lib/            # Utilities and store
-│   │   │   └── store/      # Redux store and slices
-│   │   └── pages/          # Application pages
-├── server/                 # Backend Express application
-│   ├── routes.ts           # API routes
-│   ├── storage.ts          # Data access layer
-│   ├── index.ts            # Main server entry point
-│   └── vite.ts             # Vite configuration for development
-├── shared/                 # Shared code between frontend and backend
-│   └── schema.ts           # Zod schemas for validation
-├── migrations/             # Database migration files
-├── .env                    # Environment variables
-├── package.json            # Project dependencies and scripts
-└── drizzle.config.ts       # Drizzle ORM configuration
+│   │   ├── components/   # UI components
+│   │   ├── hooks/       # Custom React hooks
+│   │   ├── lib/         # Utilities and store
+│   │   │   └── store/   # Redux store and slices
+│   │   └── pages/       # Application pages
+├── shared/               # Shared code between frontend and backend
+│   └── schema.ts         # Zod schemas for validation
+├── migrations/           # Database migration files
+├── .env                  # Environment variables
+├── package.json          # Project dependencies and scripts
+├── vercel.json          # Vercel deployment configuration
+└── drizzle.config.ts    # Drizzle ORM configuration
 ```
 
 ## Features
@@ -328,3 +327,49 @@ The project maintains the following test coverage requirements:
 - Lines: >80%
 
 Run `npm run test:coverage` to generate a detailed coverage report.
+
+### Vercel Deployment
+
+To deploy on Vercel:
+
+1. Move server code to `api` directory:
+```bash
+# Restructure server files
+mkdir -p api
+mv server/index.ts api/index.ts
+mv server/routes/* api/
+```
+
+2. Create `vercel.json` in project root:
+```json
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/**/*.ts",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "client/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/client/$1"
+    }
+  ]
+}
+```
+
+3. Update import paths in API files to reflect new structure
+
+4. Deploy to Vercel:
+```bash
+vercel
+```
