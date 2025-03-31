@@ -10,6 +10,8 @@ export const userSchema = z.object({
   avatar: z.string().optional(),
   role: z.enum(["admin", "user", "viewer"]).default("user"),
   createdAt: z.date().nullable().optional()
+
+  
 });
 
 // Insert user schema (for registration)
