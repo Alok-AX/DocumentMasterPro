@@ -15,5 +15,11 @@
     "env": {
       "NODE_ENV": "production",
       "SESSION_SECRET": "your_session_secret"
+    },
+    "functions": {
+      "server/index.ts": {
+        "memory": 1024,
+        "maxDuration": 60
+      }
     }
   }
