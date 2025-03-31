@@ -2,14 +2,29 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import cors from 'cors';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import session from "express-session";
+import { setupVite } from "./vite";
+import http from "http";
 
 // Initialize Express app
 const app = express();
+const server = http.createServer(app);
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Session setup
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "default_secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: process.env.NODE_ENV === "production" }
+  })
+);
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -55,11 +70,13 @@ function initializeRoutes() {
   return routeInitializationPromise;
 }
 
-
-
-
 // Initialize routes immediately
 initializeRoutes();
+
+// Development setup with Vite
+if (process.env.NODE_ENV !== "production") {
+  setupVite(app, server);
+}
 
 // Sample API endpoint
 app.get('/api/health', (req, res) => {
@@ -105,3 +122,8 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
 
 // Export the handler function for Vercel
 export default handler;
+
+// Start server
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

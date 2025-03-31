@@ -36,35 +36,25 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<number, User>;
+  private users: Map<number, User> = new Map();
+  private usersByUsername: Map<string, User> = new Map();
   private documents: Map<number, Document>;
   private activities: Map<number, Activity>;
   private ingestions: Map<number, Ingestion>;
 
-  private currentUserId: number;
+  private currentUserId = 1;
   private currentDocumentId: number;
   private currentActivityId: number;
   private currentIngestionId: number;
 
   constructor() {
-    this.users = new Map();
     this.documents = new Map();
     this.activities = new Map();
     this.ingestions = new Map();
 
-    this.currentUserId = 1;
     this.currentDocumentId = 1;
     this.currentActivityId = 1;
     this.currentIngestionId = 1;
-
-    // Add a default admin user
-    this.createUser({
-      username: "admin",
-      password: "admin123", // In a real app, this would be hashed
-      name: "Admin User",
-      email: "admin@example.com",
-      role: "admin"
-    });
   }
 
   // User operations
@@ -73,9 +63,7 @@ export class MemStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username
-    );
+    return this.usersByUsername.get(username);
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
@@ -84,15 +72,21 @@ export class MemStorage implements IStorage {
     );
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const now = new Date();
-    const user: User = { 
-      ...insertUser, 
-      id, 
-      createdAt: now
+  async createUser(userData: Omit<User, 'id' | 'createdAt'>): Promise<User> {
+    // Check if username already exists
+    if (this.usersByUsername.has(userData.username)) {
+      throw new Error('Username already exists');
+    }
+
+    const user: User = {
+      id: this.currentUserId++,
+      ...userData,
+      createdAt: new Date(),
     };
-    this.users.set(id, user);
+
+    this.users.set(user.id, user);
+    this.usersByUsername.set(user.username, user);
+
     return user;
   }
 
@@ -110,7 +104,12 @@ export class MemStorage implements IStorage {
   }
 
   async deleteUser(id: number): Promise<boolean> {
-    return this.users.delete(id);
+    const user = this.users.get(id);
+    if (!user) return false;
+
+    this.users.delete(id);
+    this.usersByUsername.delete(user.username);
+    return true;
   }
 
   // Document operations

@@ -30,7 +30,7 @@ const Signup = () => {
     confirmPassword: '',
     name: '',
     email: '',
-    role: 'viewer', // default role
+    role: 'user', // default role
   });
   
   const [formErrors, setFormErrors] = useState<{

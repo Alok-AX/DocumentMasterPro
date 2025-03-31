@@ -1,5 +1,3 @@
-
-
 # DocManager - Document Management System
 
 ## Project Overview
@@ -221,3 +219,112 @@ By default, new users are assigned the "user" role.
 ## License
 
 This project is licensed under the MIT License.
+
+## Testing
+
+### Test Setup
+
+The project uses Jest and React Testing Library for testing. Tests are located in the `tests/` directory.
+
+```bash
+# Run all tests
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Generate test coverage report
+npm run test:coverage
+```
+
+### Test Structure
+
+```
+tests/
+├── unit/                  # Unit tests
+│   ├── components/        # Component tests
+│   ├── hooks/            # Custom hook tests
+│   └── utils/            # Utility function tests
+├── integration/          # Integration tests
+│   ├── api/             # API endpoint tests
+│   └── flows/           # User flow tests
+└── e2e/                 # End-to-end tests
+```
+
+### Key Test Cases
+
+#### Authentication Tests
+- User login with valid credentials
+- User login with invalid credentials
+- User registration flow
+- Password validation
+- Session management
+
+#### Document Management Tests
+- Document creation
+- Document update
+- Document deletion
+- File upload validation
+- Permission checks
+
+#### User Management Tests
+- User role assignment
+- User profile updates
+- Password changes
+- Admin user management capabilities
+
+#### API Integration Tests
+- API endpoint responses
+- Error handling
+- Rate limiting
+- Authentication middleware
+- Role-based access control
+
+#### Component Tests
+- UI component rendering
+- User interaction handling
+- State management
+- Form validation
+- Error message display
+
+### Test Utilities
+
+The project includes several test utilities:
+
+- `testUtils.ts`: Common test helper functions
+- `mockData.ts`: Test fixtures and mock data
+- `setupTests.ts`: Global test setup and configuration
+
+### Writing Tests
+
+Example of a component test:
+
+```typescript
+import { render, screen, fireEvent } from '@testing-library/react';
+import { LoginForm } from '../components/LoginForm';
+
+describe('LoginForm', () => {
+  it('should display validation error for invalid email', async () => {
+    render(<LoginForm />);
+    
+    const emailInput = screen.getByLabelText('Email');
+    fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
+    
+    const submitButton = screen.getByRole('button', { name: /submit/i });
+    fireEvent.click(submitButton);
+    
+    expect(await screen.findByText('Please enter a valid email')).toBeInTheDocument();
+  });
+});
+```
+
+### Test Coverage Requirements
+
+The project maintains the following test coverage requirements:
+
+- Statements: >80%
+- Branches: >75%
+- Functions: >80%
+- Lines: >80%
+
+Run `npm run test:coverage` to generate a detailed coverage report.
